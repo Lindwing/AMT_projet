@@ -1,0 +1,62 @@
+name: Deploy to AWS
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push events but only for the main branch
+  push:
+    branches:
+    - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "deploy"
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    
+      #Check-out your repository under $GITHUB_WORKSPACE, so your workflow can access it
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@main
+      
+      #Set up JDK 11
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: maven
+          
+      #Set up SSH tunnel
+      - name: Write DMZ SSH pem
+        run: echo "${{ secrets.DMZ_KEY }}" > DMZ.pem && chmod 600 DMZ.pem
+      - name: Start DMZ tunnel
+        run: ssh -tt -o StrictHostKeyChecking=no -L 8080:${{ secrets.SSH_PRIVATE_IP }}:8080 ${{ secrets.SSH_USER }}@${{ secrets.SSH_PUBLIC_IP }} -i DMZ.pem &
+
+        
+      # Set up Maven settings for the Wildfly Server
+      - name: "Setup maven settings"
+        uses: s4u/maven-settings-action@v2.4.1
+        with:
+          servers: '[{"id": "Wildfly", "username": "${{ secrets.SERVER_USERNAME }}", "password": "${{ secrets.SERVER_PASSWORD }}" }]'
+          
+      #Build the application using Maven
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+        
+      #upload the application using Maven
+      - name: Upload WAR
+        uses: actions/upload-artifact@v2
+        with:
+          #Set artifact name
+          name: release
+          #From this path
+          path: target/shop.war
+          
+      #Deploy the app to the server
+      - name: Deploy with Maven
+        run: mvn wildfly:redeploy --file pom.xml
