@@ -39,7 +39,7 @@ jobs:
         
 
       - name: Write DMZ SSH pem
-        run: echo "${{ secrets.AMT_KEY }}" > AMT.pem && chmod 400 DMZ.pem
+        run: echo "${{ secrets.AMT_KEY }}" > AMT.pem && chmod 400 AMT.pem
       - name: SSH to server and run a command
         run: sudo ssh -o StrictHostKeyChecking=no -T admin@localhost -p 22 -i "AMT.pem"
         
