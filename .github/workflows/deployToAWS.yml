@@ -37,6 +37,9 @@ jobs:
       - name: Start DMZ tunnel
         run: ssh -tt -o StrictHostKeyChecking=no -L 8081:${{ secrets.SSH_PRIVATE_IP }}:8080 ${{ secrets.SSH_USER }}@${{ secrets.SSH_PUBLIC_IP }} -i DMZ.pem &
         
+      - name: SSH to server and run a command
+        run: sudo ssh -o StrictHostKeyChecking=no -T admin@localhost -p 23 -i "AMT_KEY.pem"
+        
       # Set up Maven settings for the Wildfly Server
       - name: "Setup maven settings"
         uses: s4u/maven-settings-action@v2.4.1
