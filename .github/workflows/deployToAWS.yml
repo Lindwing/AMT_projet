@@ -41,7 +41,7 @@ jobs:
       - name: Write DMZ SSH pem
         run: echo "${{ secrets.AMT_KEY }}" > AMT.pem && chmod 600 AMT.pem
       - name: SSH to server and run a command
-        run: sudo ssh -o StrictHostKeyChecking=no -T admin@localhost -p 22 -i "AMT.pem"
+        run: sudo ssh -vvv -o StrictHostKeyChecking=no -T admin@localhost -p 22 -i "AMT.pem"
         
       # Set up Maven settings for the Wildfly Server
       - name: "Setup maven settings"
