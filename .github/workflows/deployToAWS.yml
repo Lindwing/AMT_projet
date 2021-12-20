@@ -59,4 +59,4 @@ jobs:
           
       #Deploy the app to the server
       - name: Deploy with Maven
-        run: mvn wildfly:deploy-only --file pom.xml
+        run: mvn wildfly:redeploy --file pom.xml
